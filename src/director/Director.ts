@@ -702,9 +702,11 @@ class Director {
     audio.play('paper', { vol: 0.6 })
     gsap.delayedCall(0.85, () => audio.play('paper', { vol: 0.6, pitch: 1.1 }))
     await tween(ticket, { unfold: 1, duration: 1.7, ease: 'sine.inOut' })
-    // the ticket is open: now the tinsel cannons go off
-    confetti.burst(host.pos.clone().setY(2.6), 400, 1.8)
-    audio.play('confetti', { vol: 0.6 })
+    // the ticket is open: now the tinsel cannons go off across the stage
+    confetti.burst(new Vector3(-1.6, 2.7, 0.2), 350, 2.4, new Vector3(1.0, 0.4, 0.8), 2.4)
+    confetti.burst(host.pos.clone().setY(2.8), 450, 2.6, new Vector3(1.4, 0.4, 0.8), 2.6)
+    confetti.burst(new Vector3(1.6, 2.7, 0.2), 350, 2.4, new Vector3(1.0, 0.4, 0.8), 2.4)
+    audio.play('confetti', { vol: 0.7 })
     await wait(0.2)
 
     // then holds it up at her right side, turns to us and smiles
@@ -763,6 +765,16 @@ class Director {
     if (!this.phase('TICKET_SHOWN')) return
     host.setState('presenting')
     stage.invited = 'ticket'
+
+    // Confetti shower directly framing the presented ticket in camera view
+    const tPos = ticketCam.ticketPos
+    // Center shower directly above and slightly in front of the ticket
+    confetti.burst(new Vector3(tPos.x, tPos.y + 0.65, tPos.z + 0.12), 500, 1.8, new Vector3(1.4, 0.35, 0.5), 1.4)
+    // Left & right celebration flanking the ticket on screen
+    confetti.burst(new Vector3(tPos.x - 0.75, tPos.y + 0.7, tPos.z + 0.05), 250, 2.0, new Vector3(0.7, 0.3, 0.5), 1.6)
+    confetti.burst(new Vector3(tPos.x + 0.75, tPos.y + 0.7, tPos.z + 0.05), 250, 2.0, new Vector3(0.7, 0.3, 0.5), 1.6)
+    audio.play('confetti', { vol: 0.85 })
+
     void audio.playVoice('voiceCongrats', host.rig, { vol: 0.9, pos: host.pos })
     audio.play('applause', { vol: 0.9 })
     // audio.play('chime', { vol: 0.5 })

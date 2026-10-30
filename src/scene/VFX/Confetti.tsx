@@ -4,7 +4,7 @@ import { Color, DoubleSide, InstancedMesh, Matrix4, MeshStandardMaterial, PlaneG
 import { useQuality } from '../../quality/qualityPresets'
 import { clock } from '../../director/channels'
 
-const MAX = 400
+const MAX = 1600
 const PALETTE = ['#F2D28A', '#C9A24A', '#E8E8EE', '#FF3B5C', '#F2D28A', '#B8893B', '#FFFFFF', '#E04DFF'].map((c) => new Color(c))
 
 interface P {
@@ -20,9 +20,9 @@ interface P {
 
 /** Pool of metallic paper chips (one InstancedMesh). `confetti.burst()` recycles chips — nothing is allocated at runtime. */
 export const confetti = {
-  queue: [] as { origin: Vector3; n: number; spread: number }[],
-  burst(origin: Vector3, n = 300, spread = 1.6) {
-    this.queue.push({ origin: origin.clone(), n, spread })
+  queue: [] as { origin: Vector3; n: number; spread: number; box?: Vector3; up?: number }[],
+  burst(origin: Vector3, n = 300, spread = 1.6, box?: Vector3, up = 2.2) {
+    this.queue.push({ origin: origin.clone(), n, spread, box: box?.clone(), up })
   },
 }
 
@@ -58,15 +58,17 @@ export function Confetti() {
     while (confetti.queue.length) {
       const b = confetti.queue.shift()!
       let spawned = 0
+      const box = b.box ?? _s.set(0.3, 0.2, 0.3)
+      const up = b.up ?? 2.2
       for (let i = 0; i < Math.min(MAX, budget) && spawned < Math.min(b.n, budget); i++) {
         const c = parts[i]
         if (c.alive) continue
         c.alive = true
         c.life = 0
-        c.p.copy(b.origin).add(_s.set((Math.random() - 0.5) * 0.3, Math.random() * 0.2, (Math.random() - 0.5) * 0.3))
+        c.p.copy(b.origin).add(_s.set((Math.random() - 0.5) * box.x, Math.random() * box.y, (Math.random() - 0.5) * box.z))
         const a = Math.random() * Math.PI * 2
         const sp = Math.random() * b.spread
-        c.v.set(Math.cos(a) * sp, 2.2 + Math.random() * 2.2, Math.sin(a) * sp * 0.6)
+        c.v.set(Math.cos(a) * sp, up + Math.random() * 2.2, Math.sin(a) * sp * 0.6)
         m.setColorAt(i, PALETTE[i % PALETTE.length])
         spawned++
       }
@@ -80,12 +82,12 @@ export function Confetti() {
       }
       c.life += dt
       // drag toward a slow terminal fall, flutter sideways like paper
-      c.v.y += -4.0 * dt
-      c.v.multiplyScalar(1 - Math.min(1, 2.2 * dt))
-      if (c.v.y < -0.55) c.v.y = -0.55
+      c.v.y += -3.2 * dt
+      c.v.multiplyScalar(1 - Math.min(1, 1.8 * dt))
+      if (c.v.y < -0.48) c.v.y = -0.48
       c.p.addScaledVector(c.v, dt)
-      c.p.x += Math.sin(c.life * 3 + c.phase) * 0.25 * dt
-      c.p.z += Math.cos(c.life * 2.3 + c.phase) * 0.2 * dt
+      c.p.x += Math.sin(c.life * 2.8 + c.phase) * 0.35 * dt
+      c.p.z += Math.cos(c.life * 2.1 + c.phase) * 0.28 * dt
       let scale = 1
       if (c.p.y <= 0.004) {
         c.p.y = 0.004

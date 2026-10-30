@@ -1,0 +1,77 @@
+{
+  "$schema": "../model.schema.json",
+  "id": "mobo",
+  "name": "Mobo Robot",
+  "order": 3,
+  "author": "Tripo3D",
+  "license": "Custom",
+  "description": "Blocky humanoid robot model generated with Tripo3D.",
+  "files": {
+    "model": "host.glb"
+  },
+  "voices": {},
+  "height": 1.4,
+  "materials": "lit",
+  "centreOn": "bounds",
+  "useClips": false,
+  "bones": {
+    "hips": "Pelvis",
+    "spine": "Chest",
+    "chest": "Chest",
+    "neck": "Neck",
+    "head": "Head",
+    "lArm": "L_UpperArm",
+    "lElbow": "L_Forearm",
+    "lWrist": "L_Hand",
+    "rArm": "R_UpperArm",
+    "rElbow": "R_Forearm",
+    "rWrist": "R_Hand",
+    "lLeg": "L_Thigh",
+    "lKnee": "L_Calf",
+    "lAnkle": "L_Foot",
+    "lToe": "L_Foot",
+    "rLeg": "R_Thigh",
+    "rKnee": "R_Calf",
+    "rAnkle": "R_Foot",
+    "rToe": "R_Foot",
+    "lMid": "L_FingerA",
+    "rMid": "R_FingerA"
+  },
+  "palmBones": {
+    "L": {
+      "index": "L_FingerA",
+      "pinky": "L_FingerB"
+    },
+    "R": {
+      "index": "R_FingerA",
+      "pinky": "R_FingerB"
+    }
+  },
+  "hands": {
+    "match": "(Hand|Finger)",
+    "left": "^L_",
+    "right": "^R_"
+  },
+  "motion": {
+    "hop": 0.04,
+    "armRest": {
+      "out": 0.05,
+      "hang": 0.88,
+      "forward": 0.02
+    },
+    "handReach": 0.6,
+    "hold": {
+      "ballScale": 1.3,
+      "lift": 0.02
+    },
+    "ticketScale": 1.1,
+    "clapHalfGap": 0.06,
+    "pickup": {
+      "lean": 0.5,
+      "crouch": 0.1
+    },
+    "carryHalfWidth": 0.22,
+    "carryForward": 0.38
+  }
+}
+

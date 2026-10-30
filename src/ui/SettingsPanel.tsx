@@ -167,7 +167,7 @@ function Advanced() {
           <Toggle label="Film grain" on={q.grain} onChange={() => put('grain', !q.grain)} />
           <Toggle label="Anti-aliasing (SMAA)" on={q.antialias} onChange={() => put('antialias', !q.antialias)} />
           <Toggle label="Cage motion blur" on={q.motionBlur} onChange={() => put('motionBlur', !q.motionBlur)} />
-          <Slider label="Confetti" value={q.confetti / 400} onChange={(v) => put('confetti', Math.round(v * 400))} />
+          <Slider label="Confetti" value={q.confetti / 1600} onChange={(v) => put('confetti', Math.round(v * 1600))} />
           <button
             className="self-start text-[11px] tracking-wide text-muted underline-offset-2 hover:text-paper hover:underline disabled:opacity-40"
             disabled={!pinned && st.renderScale === 1}

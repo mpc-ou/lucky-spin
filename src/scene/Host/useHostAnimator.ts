@@ -278,7 +278,13 @@ export class HostController {
   setClips(clips: AnimationClip[], model: Object3D) {
     if (!clips.length) return
     this.mixer = new AnimationMixer(model)
-    for (const c of clips) this.actions.set(c.name.toLowerCase(), this.mixer.clipAction(c))
+    for (const c of clips) {
+      const act = this.mixer.clipAction(c)
+      const name = c.name.toLowerCase()
+      this.actions.set(name, act)
+      if (name.includes('idle') && !this.actions.has('idle')) this.actions.set('idle', act)
+      if ((name.includes('walk') || name.includes('walking')) && !this.actions.has('walk')) this.actions.set('walk', act)
+    }
     this.clipDriven = this.actions.has('idle') && (this.actions.has('walking') || this.actions.has('walk'))
     if (this.clipDriven) {
       this.activeClip = this.actions.get('idle')!
@@ -482,8 +488,8 @@ export class HostController {
     this.crouch = damp(this.crouch, this.crouchT, bodyK, dt)
     this.lean = damp(this.lean, this.leanT, bodyK, dt)
     this.bow = damp(this.bow, this.bowT, 3.5, dt)
-    this.twist = damp(this.twist, this.twistT, 3, dt)
-    this.sway = damp(this.sway, this.swayT, 2.5, dt)
+    this.twist = damp(this.twist, this.twistT, 2, dt)
+    this.sway = damp(this.sway, this.swayT, 2, dt)
     this.waveAmt = damp(this.waveAmt, this.pose === 'wave' || this.pose === 'carryWave' ? 1 : 0, 4, dt)
     for (const sd of ['L', 'R'] as Side[]) {
       const goal = this.palmGoal(sd)
@@ -677,7 +683,7 @@ export class HostController {
       const stepPh = ((((ph / Math.PI) % 1) + 1) % 1)
       const hop = Math.pow(Math.sin(stepPh * Math.PI), 1.5) * this.rig.hop - Math.exp(-stepPh * 14) * 0.03
       const bob = hop * this.walkBlend + Math.sin(this.t * 1.6) * 0.002
-      const lower = this.crouch + 0.012 + this.bow * 0.03
+      const lower = this.crouch + 0.012 * this.walkBlend + this.bow * 0.03
       const back = -this.crouch * 0.35
       translateWorld(b.hips, _v.set(0, bob - lower, 0).add(_w.set(0, 0, back).applyQuaternion(_rootQ)))
       rotateWorld(b.hips, _q.setFromAxisAngle(_u.copy(Y), Math.sin(ph) * 0.07 * this.walkBlend + this.twist * 0.3))
@@ -695,7 +701,9 @@ export class HostController {
       const counter = -Math.sin(ph) * 0.1 * this.walkBlend
       const fwd = this.lean * 0.7 + this.bow - this.crouch * 0.6
       rotateWorld(b.spine, _q.setFromAxisAngle(right, fwd * 0.5 + breath).premultiply(_q2.setFromAxisAngle(_u.copy(Y), counter + this.twist * 0.4)))
-      rotateWorld(b.chest, _q.setFromAxisAngle(right, fwd * 0.5 - breath * 0.5).premultiply(_q2.setFromAxisAngle(_u.copy(Y), this.twist * 0.3)))
+      if (b.chest !== b.spine) {
+        rotateWorld(b.chest, _q.setFromAxisAngle(right, fwd * 0.5 - breath * 0.5).premultiply(_q2.setFromAxisAngle(_u.copy(Y), this.twist * 0.3)))
+      }
       if (this.sway) rotateWorld(b.spine, _q.setFromAxisAngle(_u.copy(Z).applyQuaternion(_rootQ), this.sway))
     } else {
       // clip-driven body: layer the director's lean / bow / crouch and idle twist on top of the clip
@@ -818,7 +826,8 @@ export class HostController {
     // heel strike → footstep sound
     if (this.walkBlend > 0.4 && this.lastPhase[s] > 0.85 && p < 0.15) audio.play('footstep', { vol: 0.35 * this.walkBlend, pos: this.pos })
     this.lastPhase[s] = p
-    const local = _v.set(sx * (m.footX * 0.85), m.ankleY + lift * this.walkBlend, z * this.walkBlend - this.crouch * 0.1)
+    const footX = m.footX * (1 - 0.15 * this.walkBlend)
+    const local = _v.set(sx * footX, m.ankleY + lift * this.walkBlend, z * this.walkBlend - this.crouch * 0.1)
     const target = this.toWorld(local)
     const leg = s === 'L' ? b.lLeg : b.rLeg
     const knee = s === 'L' ? b.lKnee : b.rKnee
