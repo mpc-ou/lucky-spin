@@ -32,14 +32,20 @@ const STEPS = [
 /** Background step: the current backdrop (upload, stage-config image or the default). */
 function BackgroundPreview() {
   const uploaded = useMedia((s) => s.backstageUrl)
+  const isVideo = useMedia((s) => s.backstageType === 'video')
   const configured = useStageConfig((s) => s.backstage.image)
   const src = uploaded ?? assetUrl(configured ?? 'backstage.jpg')
+  const video = isVideo || /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(src)
   return (
     <div className="flex flex-col gap-2">
       <div className="aspect-video w-full overflow-hidden rounded-sm border border-brass/30 bg-black">
-        <img src={src} alt="Stage background" className="h-full w-full object-cover" onError={(e) => ((e.target as HTMLImageElement).style.visibility = 'hidden')} />
+        {video ? (
+          <video src={src} autoPlay loop muted playsInline className="h-full w-full object-cover" />
+        ) : (
+          <img src={src} alt="Stage background" className="h-full w-full object-cover" onError={(e) => ((e.target as HTMLImageElement).style.visibility = 'hidden')} />
+        )}
       </div>
-      <Upload kind="backstage" label="Background" accept="image/*" />
+      <Upload kind="backstage" label="Background" accept="image/*,video/mp4,video/webm,video/quicktime,video/*" />
     </div>
   )
 }

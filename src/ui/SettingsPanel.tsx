@@ -44,7 +44,7 @@ export function SettingsPanel() {
         </Section>
 
         <Section title="Stage & music">
-          <Upload kind="backstage" label="Background" accept="image/*" />
+          <Upload kind="backstage" label="Background" accept="image/*,video/mp4,video/webm,video/quicktime,video/*" />
           <Upload kind="music" label="Music" accept="audio/*" />
           <div className="text-[11px] leading-relaxed text-muted">Saved in this browser. A new upload replaces the old file.</div>
         </Section>
@@ -209,7 +209,7 @@ export function Upload({ kind, label, accept }: { kind: MediaKind; label: string
   const onPick = async (f: File | undefined) => {
     if (!f) return
     setErr(null)
-    if (f.size > 80 * 1024 * 1024) return setErr('File too large (80 MB max).')
+    if (f.size > 150 * 1024 * 1024) return setErr('File too large (150 MB max).')
     setBusy(true)
     try {
       await saveMedia(kind, f)

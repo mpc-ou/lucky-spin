@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AdditiveBlending, CanvasTexture, Color, MeshBasicMaterial, SRGBColorSpace, Texture, TextureLoader } from 'three'
+import { AdditiveBlending, CanvasTexture, Color, MeshBasicMaterial, SRGBColorSpace, Texture, TextureLoader, VideoTexture } from 'three'
 import { useStageConfig } from '../store/useStageConfig'
 import { useMedia } from '../lib/mediaStore'
 
@@ -45,48 +45,116 @@ function gradientTexture(kind: 'radial' | 'linear') {
  */
 export function Backstage() {
   const base = useStageConfig((s) => s.backstage)
-  // an image uploaded in Settings (IndexedDB) replaces the configured one
+  // an image or video uploaded in Settings (IndexedDB) replaces the configured one
   const uploaded = useMedia((s) => s.backstageUrl)
+  const isVideoUpload = useMedia((s) => s.backstageType === 'video')
   const cfg = useMemo(() => (uploaded ? { ...base, image: uploaded } : base), [base, uploaded])
   const [tex, setTex] = useState<Texture | null>(null)
+  const [glowColor, setGlowColor] = useState<Color>(new Color(0, 0, 0))
 
   useEffect(() => {
     if (!cfg.image) {
       setTex(null)
+      setGlowColor(new Color(0, 0, 0))
       return
     }
+
+    const isVideo = isVideoUpload || /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(cfg.image)
     let alive = true
-    new TextureLoader().load(
+
+    if (isVideo) {
+      const video = document.createElement('video')
+      video.src = cfg.image
+      video.crossOrigin = 'anonymous'
+      video.loop = true
+      video.muted = true
+      video.defaultMuted = true
+      video.volume = 0
+      video.playsInline = true
+      video.autoplay = true
+      video.setAttribute('muted', '')
+      video.setAttribute('playsinline', '')
+      video.setAttribute('webkit-playsinline', '')
+
+      const vTex = new VideoTexture(video)
+      vTex.colorSpace = SRGBColorSpace
+      vTex.anisotropy = 4
+
+      let timer: number | undefined
+      const updateGlow = () => {
+        if (!alive || !video.videoWidth) return
+        try {
+          setGlowColor(averageColor(video))
+        } catch {
+          // ignore CORS / sampling issues
+        }
+      }
+
+      const onLoaded = () => {
+        if (!alive) return
+        setTex(vTex)
+        updateGlow()
+        timer = window.setInterval(updateGlow, 1500)
+      }
+
+      video.addEventListener('loadeddata', onLoaded, { once: true })
+      video.play().catch(() => {
+        const onFirstClick = () => {
+          video.play().catch(() => {})
+          window.removeEventListener('pointerdown', onFirstClick)
+        }
+        window.addEventListener('pointerdown', onFirstClick, { once: true })
+      })
+
+      return () => {
+        alive = false
+        if (timer) clearInterval(timer)
+        video.pause()
+        video.removeAttribute('src')
+        video.load()
+        vTex.dispose()
+      }
+    }
+
+    const loader = new TextureLoader()
+    const t = loader.load(
       cfg.image,
-      (t) => {
-        if (!alive) return t.dispose()
-        t.colorSpace = SRGBColorSpace
-        t.anisotropy = 4
-        setTex(t)
+      (loadedTex) => {
+        if (!alive) return loadedTex.dispose()
+        loadedTex.colorSpace = SRGBColorSpace
+        loadedTex.anisotropy = 4
+        setTex(loadedTex)
+        if (loadedTex.image) {
+          try {
+            setGlowColor(averageColor(loadedTex.image as CanvasImageSource))
+          } catch {
+            setGlowColor(new Color(0, 0, 0))
+          }
+        }
       },
       undefined,
       () => console.warn('[backstage] could not load', cfg.image),
     )
     return () => {
       alive = false
+      t.dispose()
     }
-  }, [cfg.image])
-
-  useEffect(() => () => tex?.dispose(), [tex])
+  }, [cfg.image, isVideoUpload])
 
   const led = cfg.led
-  const glowColor = useMemo(() => (tex?.image ? averageColor(tex.image as CanvasImageSource) : new Color(0, 0, 0)), [tex])
 
   const mat = useMemo(() => {
     const m = new MeshBasicMaterial({ color: new Color('#0c0a0b') })
     if (!tex) return m
     m.map = tex
     m.color = new Color(cfg.tint).multiplyScalar(cfg.brightness * (1 + led.glow * 0.9))
-    // "cover": crop the image to the wall's aspect instead of stretching it
-    const img = tex.image as { width: number; height: number } | undefined
-    if (cfg.fit === 'cover' && img?.width && img.height) {
+    // "cover": crop the image/video to the wall's aspect instead of stretching it
+    const img = tex.image as { width?: number; height?: number; videoWidth?: number; videoHeight?: number } | undefined
+    const w = img?.videoWidth || img?.width
+    const h = img?.videoHeight || img?.height
+    if (cfg.fit === 'cover' && w && h) {
       const wallAspect = cfg.width / cfg.height
-      const imgAspect = img.width / img.height
+      const imgAspect = w / h
       if (imgAspect > wallAspect) {
         tex.repeat.set(wallAspect / imgAspect, 1)
         tex.offset.set((1 - tex.repeat.x) / 2, 0)

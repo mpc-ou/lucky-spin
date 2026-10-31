@@ -36,18 +36,24 @@ export async function tx<T>(mode: IDBTransactionMode, fn: (s: IDBObjectStore) =>
 interface MediaState {
   backstageUrl: string | null
   backstageName: string | null
+  backstageType: 'image' | 'video' | null
   musicName: string | null
   /** object URL of the uploaded music (for previews) */
   musicUrl: string | null
 }
 
-export const useMedia = create<MediaState>(() => ({ backstageUrl: null, backstageName: null, musicName: null, musicUrl: null }))
+export const useMedia = create<MediaState>(() => ({ backstageUrl: null, backstageName: null, backstageType: null, musicName: null, musicUrl: null }))
 
 function apply(kind: MediaKind, rec: MediaRecord | undefined) {
   if (kind === 'backstage') {
     const old = useMedia.getState().backstageUrl
     if (old) URL.revokeObjectURL(old)
-    useMedia.setState({ backstageUrl: rec ? URL.createObjectURL(rec.blob) : null, backstageName: rec?.name ?? null })
+    const isVideo = rec ? rec.blob.type.startsWith('video/') || /\.(mp4|webm|ogg|mov)$/i.test(rec.name) : false
+    useMedia.setState({
+      backstageUrl: rec ? URL.createObjectURL(rec.blob) : null,
+      backstageName: rec?.name ?? null,
+      backstageType: rec ? (isVideo ? 'video' : 'image') : null,
+    })
   } else {
     const old = useMedia.getState().musicUrl
     if (old) URL.revokeObjectURL(old)
