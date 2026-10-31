@@ -1,9 +1,9 @@
 # Lucky Spin
 
-[![Version](https://img.shields.io/github/package-json/v/konya007/lucky-spin?label=version&color=b8893b)](package.json)
-[![Source](https://img.shields.io/badge/source-GitHub-181717?logo=github)](https://github.com/konya007/lucky-spin)
+[![Version](https://img.shields.io/github/package-json/v/mpc-ou/lucky-spin?label=version&color=b8893b)](package.json)
+[![Source](https://img.shields.io/badge/source-GitHub-181717?logo=github)](https://github.com/mpc-ou/lucky-spin)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Deploy](https://github.com/konya007/lucky-spin/actions/workflows/deploy-gh-pages.yml/badge.svg)](https://github.com/konya007/lucky-spin/actions/workflows/deploy-gh-pages.yml)
+[![Deploy](https://github.com/mpc-ou/lucky-spin/actions/workflows/deploy-gh-pages.yml/badge.svg)](https://github.com/mpc-ou/lucky-spin/actions/workflows/deploy-gh-pages.yml)
 
 A cinematic 3D lucky-draw game for gala nights.
 
