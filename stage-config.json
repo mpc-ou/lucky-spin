@@ -1,0 +1,33 @@
+{
+  "_help": "Stage set-up. Edit and reload the page. Coordinates are meters: x = left(-)/right(+), y = up, z = toward the audience (+). The curtain line is z = 1.95, the back wall is z = -3.2.",
+
+  "backstage": {
+    "_help": "Image shown behind the stage (replaces the dark back wall). Put the file in /public and set image to '/backstage.jpg'. null = plain dark wall.",
+    "image": "backstage.jpg",
+    "width": 12,
+    "height": 6.5,
+    "position": [0, 3.0, -3.15],
+    "brightness": 0.35,
+    "tint": "#ffffff",
+    "fit": "cover",
+    "led": {
+      "_help": "LED-wall look. glow: 0 = flat print … 1 = bright glowing screen (highlights bloom, soft halo and light spill on the floor). grid: visible LED dots 0..1. pitch: LEDs per metre.",
+      "glow": 0.6,
+      "grid": 0.35,
+      "pitch": 48
+    }
+  },
+
+  "propLights": {
+    "_help": "Fake (cheap) light from the rig above onto objects: a soft beam + a light pool on the floor. No real lights are added.",
+    "enabled": true,
+    "color": "#FFE3B0",
+    "beamStrength": 0.05,
+    "poolStrength": 0.35,
+    "items": [
+      { "name": "cage", "target": [0, 0.0, 0.3], "from": [0.2, 5.0, 0.6], "radius": 1.25 },
+      { "name": "radio", "target": [-2.15, 0.0, 0.95], "from": [-2.0, 5.0, 1.2], "radius": 0.6 },
+      { "name": "clipboard", "target": [2.15, 0.0, 0.95], "from": [2.0, 5.0, 1.2], "radius": 0.6 }
+    ]
+  }
+}

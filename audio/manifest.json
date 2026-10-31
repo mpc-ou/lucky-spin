@@ -1,0 +1,4 @@
+{
+  "_comment": "Map an sfx name to a file in /public/audio to replace the synthesized sound, e.g. \"cymbal\": \"cymbal.mp3\". Names are listed in src/audio/sfx.ts. Loops (music, room, drumroll, clatter) can be overridden too.",
+  "files": {}
+}
